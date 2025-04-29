@@ -85,7 +85,9 @@ const Header = () => {
       {pathname.startsWith("/admin") === false && (
         <div className="h-32 bg-white flex items-center justify-between px-16 max-[1320px]:px-16 max-md:px-6 max-lg:flex-col max-lg:gap-y-7 max-lg:justify-center max-lg:h-60 max-w-screen-2xl mx-auto">
           <Link href="/">
-            <img src="/logo v1 svg.svg" width={300} height={300} alt="singitronic logo" className="relative right-5 max-[1023px]:w-56" />
+            <div className="flex items-center">
+              <span className="text-2xl font-bold text-blue-600">E_Market</span>
+            </div>
           </Link>
           <SearchInput />
           <div className="flex gap-x-10">
@@ -97,13 +99,10 @@ const Header = () => {
       {pathname.startsWith("/admin") === true && (
         <div className="flex justify-between h-32 bg-white items-center px-16 max-[1320px]:px-10  max-w-screen-2xl mx-auto max-[400px]:px-5">
           <Link href="/">
-            <Image
-              src="/logo v1.png"
-              width={130}
-              height={130}
-              alt="singitronic logo"
-              className="w-56 h-auto"
-            />
+            <div className="flex items-center">
+              <h1 className="text-2xl font-bold text-blue-600">E Market</h1>
+              <span className="text-xs text-gray-500 ml-1">Admin</span>
+            </div>
           </Link>
           <div className="flex gap-x-5 items-center">
             <FaBell className="text-xl" />

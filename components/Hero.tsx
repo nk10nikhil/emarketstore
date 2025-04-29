@@ -20,10 +20,11 @@ const Hero = () => {
             THE PRODUCT OF THE FUTURE
           </h1>
           <p className="text-white max-sm:text-sm">
-            Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolor modi
-            iure laudantium necessitatibus ab, voluptates vitae ullam. Officia
-            ipsam iusto beatae nesciunt, consequatur deserunt minima maiores
-            earum obcaecati. Optio, nam!
+            This is a smart watch that can do everything. It has a lot of features
+            and is very easy to use. You can track your health, monitor your
+            fitness, and even make calls. It is the perfect companion for your
+            active lifestyle. With its sleek design and advanced technology, this
+            smart watch is a must-have for anyone who wants to stay connected and healthy.
           </p>
           <div className="flex gap-x-1 max-lg:flex-col max-lg:gap-y-1">
             <button className="bg-white text-blue-600 font-bold px-12 py-3 max-lg:text-xl max-sm:text-lg hover:bg-gray-100">
