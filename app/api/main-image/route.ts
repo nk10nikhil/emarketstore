@@ -1,7 +1,7 @@
 import prisma from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth/config";
 
 // Update product main image
 export async function PUT(req: NextRequest) {

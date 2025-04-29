@@ -11,19 +11,14 @@
 import React from "react";
 import ProductItem from "./ProductItem";
 import Heading from "./Heading";
-import { headers } from "next/headers";
 
 const ProductsSection = async () => {
   try {
-    // Get the host from headers to build a complete URL
-    const headersList = headers();
-    const host = headersList.get("host") || "localhost:3000";
-    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
-
-    // Create a full URL with protocol and host
-    const apiUrl = `${protocol}://${host}/api/products`;
-
-    const data = await fetch(apiUrl, { next: { revalidate: 3600 } });
+    // Use absolute URL for server component
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
+    const data = await fetch(`${apiUrl}/api/products`, {
+      cache: 'no-store' // Using no-store instead of both cache and revalidate
+    });
 
     if (!data.ok) {
       throw new Error(`Failed to fetch products: ${data.statusText}`);

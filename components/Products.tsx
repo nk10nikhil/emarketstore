@@ -39,10 +39,10 @@ const Products = async ({ slug }: any) => {
 
   try {
     // For Next.js server components, we need to use absolute URLs for fetch
-    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
     // Construct API endpoint with query parameters
-    const url = `${API_BASE}/products?filters[price][$lte]=${slug?.searchParams?.price || 3000
+    const url = `${apiBaseUrl}/api/products?filters[price][$lte]=${slug?.searchParams?.price || 3000
       }&filters[rating][$gte]=${Number(slug?.searchParams?.rating) || 0
       }&filters[inStock][$${stockMode}]=1&${slug?.params?.slug?.length > 0
         ? `filters[category][$equals]=${slug?.params?.slug}&`
@@ -50,7 +50,7 @@ const Products = async ({ slug }: any) => {
       }sort=${slug?.searchParams?.sort}&page=${page}`;
 
     // Fetch data with appropriate caching strategy
-    const data = await fetch(url, { next: { revalidate: 3600 } });
+    const data = await fetch(url, { cache: 'no-store' });
 
     if (!data.ok) {
       throw new Error(`Failed to fetch products: ${data.statusText}`);

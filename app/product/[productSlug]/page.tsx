@@ -68,7 +68,14 @@ const SingleProductPage = async ({ params }: SingleProductPageProps) => {
             <StockAvailabillity stock={94} inStock={product?.inStock} />
             <SingleProductDynamicFields product={product} />
             <div className="flex flex-col gap-y-2 max-[500px]:items-center">
-              <AddToWishlistBtn product={product} slug={params.productSlug} />
+              <AddToWishlistBtn
+                title={product?.title}
+                price={product?.price}
+                image={product?.mainImage || "/product_placeholder.jpg"}
+                productId={product?.id}
+                slug={params.productSlug}
+                stockAvailabillity={product?.inStock}
+              />
               <p className="text-lg">
                 SKU: <span className="ml-1">abccd-18</span>
               </p>
