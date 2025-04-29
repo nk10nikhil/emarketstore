@@ -27,49 +27,57 @@ const Header = () => {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const { wishlist, setWishlist, wishQuantity } = useWishlistStore();
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
 
   const handleLogout = () => {
     setTimeout(() => signOut(), 1000);
     toast.success("Logout successful!");
   };
 
-  // getting all wishlist items by user id
-  const getWishlistByUserId = async (id: string) => {
-    const response = await fetch(`http://localhost:3001/api/wishlist/${id}`, {
-      cache: "no-store",
-    });
-    const wishlist = await response.json();
-    const productArray: {
-      id: string;
-      title: string;
-      price: number;
-      image: string;
-      slug:string
-      stockAvailabillity: number;
-    }[] = [];
-    
-    wishlist.map((item: any) => productArray.push({id: item?.product?.id, title: item?.product?.title, price: item?.product?.price, image: item?.product?.mainImage, slug: item?.product?.slug, stockAvailabillity: item?.product?.inStock}));
-    
-    setWishlist(productArray);
-  };
+  // getting all wishlist items
+  const getWishlist = async () => {
+    try {
+      // Use the new API route directly
+      const response = await fetch(`${apiBaseUrl}/wishlist`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-  // getting user by email so I can get his user id
-  const getUserByEmail = async () => {
-    if (session?.user?.email) {
-      
-      fetch(`http://localhost:3001/api/users/email/${session?.user?.email}`, {
-        cache: "no-store",
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          getWishlistByUserId(data?.id);
-        });
+      if (!response.ok) {
+        throw new Error('Failed to fetch wishlist');
+      }
+
+      const wishlistData = await response.json();
+      const productArray: {
+        id: string;
+        title: string;
+        price: number;
+        image: string;
+        slug: string;
+        stockAvailabillity: number;
+      }[] = [];
+
+      wishlistData.map((item: any) => productArray.push({
+        id: item?.product?.id,
+        title: item?.product?.title,
+        price: item?.product?.price,
+        image: item?.product?.mainImage,
+        slug: item?.product?.slug,
+        stockAvailabillity: item?.product?.inStock
+      }));
+
+      setWishlist(productArray);
+    } catch (error) {
+      console.error('Error fetching wishlist:', error);
     }
   };
 
   useEffect(() => {
-    getUserByEmail();
-  }, [session?.user?.email, wishlist.length]);
+    if (session?.user) {
+      getWishlist();
+    }
+  }, [session?.user, wishlist.length]);
 
   return (
     <header className="bg-white">

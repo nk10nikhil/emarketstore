@@ -55,47 +55,33 @@ export const authOptions: any = {
         return true;
       }
       // if (account?.provider == "github") {
-
-      //   try {
-      //     const existingUser = await prisma.user.findFirst({ where: {email: user.email!} });
-      //     if (!existingUser) {
-
-      //       await prisma.user.create({
-      //           data: {
-      //             id: nanoid() + "",
-      //             email: user.email!
-      //           },
-      //         });
-      //       return true;
-      //     }
-      //     return true;
-      //   } catch (err) {
-      //     console.log("Error saving user", err);
-      //     return false;
-      //   }
+      //   // ...existing code...
       // }
-
       // if (account?.provider == "google") {
-
-      //   try {
-      //     const existingUser = await prisma.user.findFirst({where: { email: user.email! }});
-      //     if (!existingUser) {
-      //       await prisma.user.create({
-      //           data: {
-      //             id: nanoid() + "",
-      //             email: user.email!
-      //           },
-      //         });
-
-      //       return true;
-      //     }
-      //     return true;
-      //   } catch (err) {
-      //     console.log("Error saving user", err);
-      //     return false;
-      //   }
+      //   // ...existing code...
       // }
+      return false;
     },
+
+    // Add this session callback to include user data in the session
+    async session({ session, token }: { session: any; token: any }) {
+      if (token) {
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.role = token.role;
+      }
+      return session;
+    },
+
+    // Add this JWT callback to include user data in the token
+    async jwt({ token, user }: { token: any; user: any }) {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.role = user.role;
+      }
+      return token;
+    }
   },
 };
 

@@ -4,121 +4,162 @@
 // Developer: Aleksandar Kuzmanovic
 // Version: 1.0
 // Component call: <WishItem id={id} title={title} price={price} image={image} slug={slug} stockAvailabillity={stockAvailabillity} />
-// Input parameters: ProductInWishlist interface
+// Input parameters: Props interface
 // Output: single wishlist item on the wishlist page
 // *********************
 
 "use client";
-import { useWishlistStore } from "@/app/_zustand/wishlistStore";
-import { revalidatePath } from "next/cache";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
-import toast from "react-hot-toast";
-import { FaHeartCrack } from "react-icons/fa6";
-import { deleteWishItem } from "@/app/actions";
-import { useSession } from "next-auth/react";
 
-interface wishItemStateTrackers {
-  isWishItemDeleted: boolean;
-  setIsWishItemDeleted: any;
+import React, { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { useWishlistStore } from "@/app/_zustand/wishlistStore";
+import { toast } from "react-hot-toast";
+import { useCartStore } from "@/app/_zustand/cartStore";
+
+interface Props {
+  title: string;
+  price: number;
+  image: string;
+  id: string;
+  slug: string;
+  stockAvailabillity: number;
 }
 
 const WishItem = ({
-  id,
   title,
   price,
   image,
+  id,
   slug,
   stockAvailabillity,
-}: ProductInWishlist) => {
-  const { data: session, status } = useSession();
-  const { removeFromWishlist } = useWishlistStore();
-  const router = useRouter();
-  const [userId, setUserId] = useState<string>();
+}: Props) => {
+  const { cart, setCart } = useCartStore();
+  const { data: session } = useSession();
+  const { wishlist, setWishlist } = useWishlistStore();
+  const [userId, setUserId] = useState("");
+  const [wishId, setWishId] = useState("");
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || '/api';
 
-  const openProduct = (slug: string): void => {
-    router.push(`/product/${slug}`);
+  // Handle adding product to cart
+  const handleAddToCart = () => {
+    // Check if the item is already in the cart
+    const isItemInCart = cart.some((item) => item.id === id);
+
+    if (isItemInCart) {
+      toast.error("Item is already in your cart!");
+      return;
+    }
+
+    const newItem = {
+      id,
+      name: title,
+      price,
+      image,
+      quantity: 1,
+      slug,
+    };
+
+    setCart([...cart, newItem]);
+    toast.success("Item added to cart!");
   };
 
-  const getUserByEmail = async () => {
-    if (session?.user?.email) {
-      fetch(`http://localhost:3001/api/users/email/${session?.user?.email}`, {
-        cache: "no-store",
-      })
-        .then((response) => response.json())
-        .then((data) => {
-          setUserId(data?.id);
+  // Get the wishlist item ID so we can delete it
+  const getWishlistItemId = async () => {
+    if (session?.user) {
+      try {
+        // Use the new wishlist API directly
+        const response = await fetch(`${apiBaseUrl}/wishlist`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch wishlist');
+        }
+
+        const data = await response.json();
+        // Find the wishlist item that matches the product ID
+        const wishlistItem = data.find((item: any) => item.product.id === id);
+
+        if (wishlistItem) {
+          setWishId(wishlistItem.id);
+        }
+      } catch (error) {
+        console.error('Error fetching wishlist:', error);
+      }
     }
   };
 
-  const deleteItemFromWishlist = async (productId: string) => {
-    
-    if (userId) {
+  // Remove item from wishlist
+  const handleRemove = async () => {
+    try {
+      if (wishId) {
+        const response = await fetch(`${apiBaseUrl}/wishlist/${wishId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-      fetch(`http://localhost:3001/api/wishlist/${userId}/${productId}`, {method: "DELETE"}).then(
-        (response) => {
-          removeFromWishlist(productId);
-          toast.success("Item removed from your wishlist");
+        if (!response.ok) {
+          throw new Error('Failed to remove from wishlist');
         }
-      );
-    }else{
-      toast.error("You need to be logged in to perform this action");
+
+        // Update local state
+        const updatedWishlist = wishlist.filter(item => item.id !== id);
+        setWishlist(updatedWishlist);
+        toast.success("Item removed from wishlist!");
+      }
+    } catch (error) {
+      console.error('Error removing from wishlist:', error);
+      toast.error("Failed to remove from wishlist");
     }
   };
 
   useEffect(() => {
-    getUserByEmail();
-  }, [session?.user?.email]);
+    getWishlistItemId();
+  }, [session?.user, id]);
 
   return (
-    <tr className="hover:bg-gray-100 cursor-pointer">
-      <th
-        className="text-black text-sm text-center"
-        onClick={() => openProduct(slug)}
-      >
-        {id}
-      </th>
-      <th>
-        <div className="w-12 h-12 mx-auto" onClick={() => openProduct(slug)}>
-          <Image
-            src={`/${image}`}
-            width={200}
-            height={200}
-            className="w-auto h-auto"
-            alt={title}
-          />
+    <div className="w-full flex h-full gap-x-5 mb-5 pb-5 border-b border-gray-100">
+      <div className="w-16 h-16 border border-slate-100 flex items-center justify-center">
+        <img src={image} alt="" className="object-cover" />
+      </div>
+      <div className="flex w-full justify-between items-start">
+        <div className="flex flex-col">
+          <Link href={`/product/${slug}`}>
+            <p className="text-base font-normal leading-normal text-slate-600">
+              {title}
+            </p>
+          </Link>
+          <p className="font-medium text-xl leading-normal text-slate-800">
+            ${price}
+          </p>
+          <p className="text-sm font-normal text-slate-500">
+            {stockAvailabillity > 0
+              ? `Available Stock: ${stockAvailabillity}`
+              : "Out of Stock"}
+          </p>
         </div>
-      </th>
-      <td
-        className="text-black text-sm text-center"
-        onClick={() => openProduct(slug)}
-      >
-        {title}
-      </td>
-      <td
-        className="text-black text-sm text-center"
-        onClick={() => openProduct(slug)}
-      >
-        {stockAvailabillity ? (
-          <span className="text-success">In stock</span>
-        ) : (
-          <span className="text-error">Out of stock</span>
-        )}
-      </td>
-      <td>
-        <button className="btn btn-xs bg-blue-500 text-white hover:text-blue-500 border border-blue-500 hover:bg-white hover:text-blue-500 text-sm">
-          <FaHeartCrack />
-          <span
-            className="max-sm:hidden"
-            onClick={() => deleteItemFromWishlist(id)}
+        <div className="flex flex-col">
+          <button
+            onClick={handleRemove}
+            className="p-2 mb-2 bg-red-100 text-red-600 hover:bg-red-200 rounded text-sm"
           >
-            remove from the wishlist
-          </span>
-        </button>
-      </td>
-    </tr>
+            Remove
+          </button>
+          <button
+            onClick={handleAddToCart}
+            className="p-2 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded text-sm"
+            disabled={stockAvailabillity <= 0}
+          >
+            Add to Cart
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 

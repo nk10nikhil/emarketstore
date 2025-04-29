@@ -11,30 +11,39 @@
 import React from "react";
 import ProductItem from "./ProductItem";
 import Heading from "./Heading";
+import { headers } from "next/headers";
 
 const ProductsSection = async () => {
-  // Use relative URL path or environment variable for API URL
-  // This will work with both development and production environments
   try {
-    // For Next.js server components, we need to use absolute URLs for fetch
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/products';
+    // Get the host from headers to build a complete URL
+    const headersList = headers();
+    const host = headersList.get("host") || "localhost:3000";
+    const protocol = process.env.NODE_ENV === "development" ? "http" : "https";
 
-    const data = await fetch(API_URL, { next: { revalidate: 3600 } });
+    // Create a full URL with protocol and host
+    const apiUrl = `${protocol}://${host}/api/products`;
+
+    const data = await fetch(apiUrl, { next: { revalidate: 3600 } });
 
     if (!data.ok) {
       throw new Error(`Failed to fetch products: ${data.statusText}`);
     }
 
-    const products = await data.json();
+    const response = await data.json();
+    const products = response.products || []; // Make sure we're accessing the products array correctly
 
     return (
       <div className="bg-blue-500 border-t-4 border-white">
         <div className="max-w-screen-2xl mx-auto pt-20">
           <Heading title="FEATURED PRODUCTS" />
           <div className="grid grid-cols-4 justify-items-center max-w-screen-2xl mx-auto py-10 gap-x-2 px-10 gap-y-8 max-xl:grid-cols-3 max-md:grid-cols-2 max-sm:grid-cols-1">
-            {products.map((product: Product) => (
-              <ProductItem key={product.id} product={product} color="white" />
-            ))}
+            {products && products.length > 0 ? (
+              products.map((product: any) => (
+                <ProductItem key={product.id} product={product} color="white" />
+              ))
+            ) : (
+              <p className="text-white col-span-4">No products available at this time.</p>
+            )}
           </div>
         </div>
       </div>
