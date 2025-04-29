@@ -1,5 +1,6 @@
 import prisma from "@/utils/db";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
     try {
@@ -10,13 +11,16 @@ export async function GET(req: NextRequest) {
 
         const skip = (page - 1) * limit;
 
-        // Search products by title, slug, description, or manufacturer
+        // For MongoDB, we need to use a regex pattern for case-insensitive search
+        const regex = { $regex: query, $options: 'i' };
+
+        // Use Prisma's native MongoDB query capabilities
         const where = {
             OR: [
-                { title: { contains: query, mode: 'insensitive' } },
-                { slug: { contains: query, mode: 'insensitive' } },
-                { description: { contains: query, mode: 'insensitive' } },
-                { manufacturer: { contains: query, mode: 'insensitive' } },
+                { title: { contains: query } },
+                { slug: { contains: query } },
+                { description: { contains: query } },
+                { manufacturer: { contains: query } },
             ]
         };
 
